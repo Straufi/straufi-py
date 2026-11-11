@@ -1,0 +1,63 @@
+from straufi import Config, Every, Instrument, Order, OrderSide, OrderType, Strategy
+from straufi.indicators import RSI, BollingerBands
+
+
+class $class_name(Strategy):
+    """Mean reversion example strategy
+
+    Buys when the price looks too low, and sells when it looks too high.
+    - Buy: RSI under 30 and close under the lower Bollinger band.
+    - Sell: RSI over 70 and close over the upper Bollinger band.
+    """
+
+    @staticmethod
+    def config():
+        return Config(
+            instruments={
+                "btc": Instrument("BTC", "USDT", "binance"),
+                "eth": Instrument("ETH", "USDT", "binance"),
+            },
+            indicators={
+                "rsi14": RSI(period=14),  # -> column "rsi14"
+                "bb": BollingerBands(period=20),  # -> columns "bb_upper", "bb_middle" and "bb_lower"
+            },
+            lookback=24 * 120,  # Number of candles of history
+            interval="1h",  # The size of the candles
+            frequency=Every("1h"),  # When the strategy runs
+        )
+
+    def run(self) -> None:
+        budgets = self.get_budget()
+        positions = self.get_positions()
+
+        for alias, instrument in self.instruments():
+            df = self.get_df(alias)
+            last = df.iloc[-1]
+            broker_budget = budgets.get(instrument.broker, {})
+            quote_available = broker_budget.get(instrument.quote, 0.0)  # e.g. how much USDT we can spend
+            base_owned = broker_budget.get(instrument.base, 0.0)  # e.g. how much BTC we can sell
+
+            print(f"{instrument} ({alias}): close={last.close} rsi={last.rsi14:.1f} {instrument.quote}={quote_available}")
+
+            if any(order.instrument == instrument for order in positions):
+                # We already have an open order on this instrument
+                continue
+
+            if last.rsi14 < 30 and last.close < last.bb_lower and quote_available > 0:
+                self.place_order(
+                    Order(
+                        instrument=instrument,
+                        type=OrderType.MARKET,
+                        side=OrderSide.BUY,
+                        quote_volume=quote_available * 0.1,  # Spend 10% of what's available
+                    )
+                )
+            elif last.rsi14 > 70 and last.close > last.bb_upper and base_owned > 0:
+                self.place_order(
+                    Order(
+                        instrument=instrument,
+                        type=OrderType.MARKET,
+                        side=OrderSide.SELL,
+                        volume=base_owned,  # Sell everything we own
+                    )
+                )

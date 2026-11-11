@@ -1,0 +1,24 @@
+{
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"extends": ["config:recommended", ":semanticCommitTypeAll(chore)"],
+	"minimumReleaseAge": "7 days",
+	"internalChecksFilter": "strict",
+	"packageRules": [
+		{
+			"matchManagers": ["pep621"],
+			"matchUpdateTypes": ["minor", "patch"],
+			"groupName": "all non-major dependencies",
+			"schedule": ["* 0-4 1,15 * *"]
+		},
+		{
+			"matchManagers": ["pep621"],
+			"matchUpdateTypes": ["major"],
+			"schedule": ["* 0-4 1 * *"]
+		},
+		{
+			"matchManagers": ["github-actions"],
+			"matchUpdateTypes": ["major", "minor", "patch", "digest", "pin"],
+			"groupName": "github-actions"
+		}
+	]
+}

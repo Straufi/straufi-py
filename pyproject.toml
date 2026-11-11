@@ -1,0 +1,61 @@
+[project]
+name = "straufi"
+version = "0.1.0"
+description = "Write trading strategies for the Straufi platform, and deploy them with the straufi CLI."
+readme = "README.md"
+authors = [{ name = "Straufi Team" }]
+requires-python = ">=3.12"
+dependencies = [
+    "httpx>=0.27",
+    "keyring>=25.7.0",
+    "pandas>=2.2",
+    "pathspec>=0.12",
+    "rich>=14",
+    "tomlkit>=0.13",
+    "typer>=0.15",
+]
+
+[project.scripts]
+straufi = "straufi.cli:main"
+
+[dependency-groups]
+dev = ["pyright[nodejs]>=1.1.414", "pytest>=9.1", "ruff>=0.16"]
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--import-mode=importlib"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "W",   # pycodestyle
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # bugbear
+    "SIM", # simplify
+    "C4",  # comprehensions
+    "PIE",
+    "RUF",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["straufi"]
+
+[tool.pyright]
+include = ["src", "tests"]
+pythonVersion = "3.12"
+typeCheckingMode = "standard"
+venvPath = "."
+venv = ".venv"
+
+[build-system]
+requires = ["uv_build>=0.12.19,<0.13.0"]
+build-backend = "uv_build"

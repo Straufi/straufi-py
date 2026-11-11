@@ -1,0 +1,20 @@
+[project]
+name = "$project_name"
+version = "0.1.0"
+description = "A Straufi trading strategy"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "straufi>=$straufi_version",
+    "pandas>=2.2",
+    "numpy>=2",
+]
+
+[dependency-groups]
+dev = ["ruff>=0.15"]
+
+[tool.straufi]
+# Where your strategy is: "<python file without .py>:<class name>"
+entrypoint = "strategy:$class_name"
+# The strategy on Straufi that this project builds
+id = "$strategy_id"
